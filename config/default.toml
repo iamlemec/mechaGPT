@@ -1,0 +1,46 @@
+# default config values designed to train a small char model
+
+# I/O
+log_interval = 100 # how often to display training updates
+eval_interval = 500 # how often to do validation loss estimate
+eval_iters = 200 # how many batches for validation loss estimate
+eval_only = false # if true, script exits right after the first eval
+always_save_checkpoint = true # if true, always save a checkpoint after each eval
+init_from = "scratch" # 'scratch' or 'resume' or 'gpt2*'
+
+# data
+valid_frac = 0.1 # fraction of data to use for validation set
+batch_size = 64 # batch sizes obvs
+block_size = 128 # history window size
+
+# model
+n_layer = 4 # number of GPT blocks
+n_head = 4 # number of attention heads
+n_embd = 128 # embedding size
+dropout = 0.0 # for pretraining 0 is good, for finetuning try 0.1+
+
+# adamw optimizer
+learning_rate = 1e-3 # max learning rate
+max_iters = 5000 # total number of training iterations
+weight_decay = 1e-2 # drag down weights
+beta1 = 0.9 # adam first moment
+beta2 = 0.99 # adam second moment
+
+# learning rate decay settings
+decay_lr = true # whether to decay the learning rate
+warmup_iters = 100 # how many steps to warm up for
+lr_decay_iters = 5000 # should be ~= max_iters per Chinchilla
+min_lr = 1e-4 # minimum learning rate, should be ~= learning_rate/10 per Chinchilla
+
+# system
+device = "cuda" # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
+dtype = "bfloat16" # 'float32' or 'bfloat16'
+compile = false # use PyTorch 2.0 to compile the model to be faster
+seed = 1337 # random seed to use
+
+# sampling
+start = "\n" # or "<|endoftext|>" or whatever you like
+num_samples = 5 # number of samples to draw
+max_new_tokens = 1000 # number of tokens generated in each sample
+temperature = 0.8 # higher temperature (up to 1) is more random
+top_k = 200 # retain only the top_k most likely tokens
