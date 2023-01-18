@@ -6,9 +6,11 @@ eval_interval = 500 # how often to do validation loss estimate
 eval_iters = 200 # how many batches for validation loss estimate
 eval_only = false # if true, script exits right after the first eval
 always_save_checkpoint = true # if true, always save a checkpoint after each eval
-init_from = "scratch" # 'scratch' or 'resume' or 'gpt2*'
+init = "scratch" # 'scratch' or 'gpt2*', overriden by "load"
+save = "output" # default directory to store checkpoints
 
 # data
+encoding = "char" # use character encoding by default (or "gpt2")
 valid_frac = 0.1 # fraction of data to use for validation set
 batch_size = 64 # batch sizes obvs
 block_size = 128 # history window size

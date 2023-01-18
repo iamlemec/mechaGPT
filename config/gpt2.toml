@@ -1,0 +1,14 @@
+# evaluate base gpt2
+
+# model (124M parameters)
+n_layer = 12
+n_head = 12
+n_embd = 768
+
+# parameters
+batch_size = 8
+dropout = 0.1
+
+# data
+encoding = "gpt2"
+init = "gpt2"

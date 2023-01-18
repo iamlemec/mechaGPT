@@ -2,14 +2,16 @@
 
 import fire
 import pickle
-import torch
-import numpy as np
 from pathlib import Path
 
+import numpy as np
+import torch
+import tiktoken
+
 # convert text to numeric data
-def prepare(dataset, verbose=True):
+def prepare_char(dataset):
     # use pathlib
-    path = Path('datasets') / dataset
+    path = Path(dataset)
 
     # load text data
     with open(path/'input.txt', 'r') as f:
@@ -27,7 +29,8 @@ def prepare(dataset, verbose=True):
     data_toks = [stoi[c] for c in data]
 
     # export to bin file
-    np.array(data_toks, dtype=np.uint16).tofile(path/'tokens.bin')
+    toks_file = path / 'char_tokens.bin'
+    np.array(data_toks, dtype=np.uint16).tofile(toks_file)
 
     # save the meta information
     meta = {
@@ -35,29 +38,53 @@ def prepare(dataset, verbose=True):
         'itos': itos,
         'stoi': stoi,
     }
-    with open(path/'meta.pkl', 'wb') as f:
+    with open(path/'char_meta.pkl', 'wb') as f:
         pickle.dump(meta, f)
 
     # output diagnostic info
-    if verbose:
-        print('length of dataset in characters: ', len(data))
-        print('all the unique characters:', ''.join(chars))
-        print('vocab size:', vocab_size)
-        print(f'data has {len(data_toks)} tokens')
+    print('length of dataset in characters: ', len(data))
+    print('all the unique characters:', ''.join(chars))
+    print('vocab size:', vocab_size)
+    print(f'data has {len(data_toks)} tokens')
+
+# convert text to gpt2 usable
+def prepare_gpt2(dataset, num_proc=8):
+    # use pathlib
+    path = Path(dataset)
+
+    # load text data
+    with open(path/'input.txt', 'r') as f:
+        data = f.read()
+
+    # we now want to tokenize the dataset. first define the encoding function (gpt2 bpe)
+    encoder = tiktoken.get_encoding('gpt2')
+    data_toks = encoder.encode_ordinary(data)
+    data_toks.append(encoder.eot_token)
+
+    # export to bin file
+    toks_file = path / 'gpt2_tokens.bin'
+    np.array(data_toks, dtype=np.uint16).tofile(toks_file)
+
+    # output diagnostic info
+    print('length of dataset in characters: ', len(data))
+    # print('all the unique characters:', ''.join(chars))
+    # print('vocab size:', vocab_size)
+    print(f'data has {len(data_toks)} tokens')
 
 def get_generator(seed):
     return torch.manual_seed(seed) if seed is not None else None
 
 # create sequences and split into training and validation
-def load_dataset(dataset, valid_frac=0.1, seed=None):
+def load_dataset(datadir, encoding='char', valid_frac=0.1, seed=None):
     # use pathlib
-    path = Path('datasets') / dataset
+    datadir = Path(datadir)
 
     # use random seed
     gen = get_generator(seed)
 
     # load data file
-    data = np.memmap(path/'tokens.bin', dtype=np.uint16, mode='r')
+    path = datadir / f'{encoding}_tokens.bin'
+    data = np.memmap(path, dtype=np.uint16, mode='r')
     data = torch.from_numpy(data.astype(np.int64))
 
     # get output size
@@ -86,4 +113,7 @@ def get_batch(data, indices, batch_size, block_size, seed=None):
 
 # create interface
 if __name__ == '__main__':
-    fire.Fire(prepare)
+    fire.Fire({
+        'prepare_char': prepare_char,
+        'prepare_gpt2': prepare_gpt2,
+    })
